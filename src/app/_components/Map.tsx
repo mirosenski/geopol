@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import maplibregl from 'maplibre-gl';
+import { useEffect, useRef } from "react";
+import maplibregl from "maplibre-gl";
 
 export default function Map() {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -9,7 +9,7 @@ export default function Map() {
   useEffect(() => {
     const map = new maplibregl.Map({
       container: mapContainer.current!,
-      style: 'https://demotiles.maplibre.org/style.json', // public Tile Style
+      style: "https://demotiles.maplibre.org/style.json", // public Tile Style
       center: [9.1829, 48.7758], // Stuttgart
       zoom: 9,
     });
@@ -18,8 +18,8 @@ export default function Map() {
   }, []);
 
   return (
-    <div className="w-full h-[600px] border border-gray-300 rounded-xl overflow-hidden">
-      <div ref={mapContainer} className="w-full h-full" />
+    <div className="h-[600px] w-full overflow-hidden rounded-xl border border-gray-300">
+      <div ref={mapContainer} className="h-full w-full" />
     </div>
   );
-} 
+}
