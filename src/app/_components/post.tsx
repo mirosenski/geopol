@@ -8,13 +8,18 @@ export function LatestPost() {
   const [latestPost] = api.post.getLatest.useSuspenseQuery();
 
   const utils = api.useUtils();
-  const [name, setName] = useState("");
+  const [name, setName] = useState<string>("");
   const createPost = api.post.create.useMutation({
     onSuccess: async () => {
       await utils.post.invalidate();
       setName("");
     },
   });
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    createPost.mutate({ name });
+  };
 
   return (
     <div className="w-full max-w-xs">
@@ -24,10 +29,7 @@ export function LatestPost() {
         <p>You have no posts yet.</p>
       )}
       <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          createPost.mutate({ name });
-        }}
+        onSubmit={handleSubmit}
         className="flex flex-col gap-2"
       >
         <input

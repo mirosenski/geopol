@@ -4,6 +4,35 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
+// Typen für Police Station
+interface PoliceStation {
+  id: number;
+  name: string;
+  lat: number;
+  lng: number;
+  type: "hauptwache" | "revier";
+}
+
+// Typ für GeoJSON Feature
+interface GeoJSONFeature {
+  type: "Feature";
+  geometry: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+  properties: {
+    id: number;
+    name: string;
+    type: string;
+  };
+}
+
+// Typ für GeoJSON Collection
+interface GeoJSONCollection {
+  type: "FeatureCollection";
+  features: GeoJSONFeature[];
+}
+
 export function MapComponent() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
@@ -39,7 +68,7 @@ export function MapComponent() {
       });
 
       // Add police stations data
-      const policeStations = [
+      const policeStations: PoliceStation[] = [
         { id: 1, name: "Polizeipräsidium", lat: 48.7758, lng: 9.1829, type: "hauptwache" },
         { id: 2, name: "Polizeirevier 1", lat: 48.7858, lng: 9.1929, type: "revier" },
         { id: 3, name: "Polizeirevier 2", lat: 48.7658, lng: 9.1729, type: "revier" },
@@ -51,23 +80,25 @@ export function MapComponent() {
         if (!map.current) return;
 
         // Add police stations source
+        const geoJSONData: GeoJSONCollection = {
+          type: "FeatureCollection",
+          features: policeStations.map(station => ({
+            type: "Feature",
+            geometry: {
+              type: "Point",
+              coordinates: [station.lng, station.lat]
+            },
+            properties: {
+              id: station.id,
+              name: station.name,
+              type: station.type
+            }
+          }))
+        };
+
         map.current.addSource("police-stations", {
           type: "geojson",
-          data: {
-            type: "FeatureCollection",
-            features: policeStations.map(station => ({
-              type: "Feature",
-              geometry: {
-                type: "Point",
-                coordinates: [station.lng, station.lat]
-              },
-              properties: {
-                id: station.id,
-                name: station.name,
-                type: station.type
-              }
-            }))
-          }
+          data: geoJSONData
         });
 
         // Add police stations layer
@@ -105,7 +136,7 @@ export function MapComponent() {
         map.current.on("click", "police-stations", (e) => {
           if (e.features && e.features[0]) {
             const feature = e.features[0];
-            const properties = feature.properties;
+            const properties = feature.properties as { name: string; type: string };
             if (properties) {
               alert(`${properties.name}\nTyp: ${properties.type}`);
             }

@@ -18,9 +18,14 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
+// Typen für RootLayout-Props
+interface RootLayoutProps {
+  children: React.ReactNode;
+}
+
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: Readonly<RootLayoutProps>) {
   return (
     <html lang="en" className={`${geist.variable}`}>
       <body>

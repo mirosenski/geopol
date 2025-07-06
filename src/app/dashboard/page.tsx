@@ -4,19 +4,24 @@ import { authConfig } from "~/server/auth/config";
 import { MapComponent } from "~/components/MapComponent";
 
 export default async function DashboardPage() {
+  // Session-Extraktion ohne explizite Typisierung
   const session = await getServerSession(authConfig);
 
   console.log("🔍 Dashboard - Session gefunden:", !!session);
   console.log("🔍 Dashboard - Session Details:", session ? {
-    email: session.user.email,
-    role: session.user.role,
-    name: session.user.name
+    email: session.user?.email,
+    role: session.user?.role,
+    name: session.user?.name
   } : "Keine Session");
 
-  if (!session) {
+  if (!session?.user) {
     console.log("❌ Dashboard - Keine Session, leite zur Auth-Seite weiter");
     redirect("/auth");
   }
+
+  // Typ-sichere Extraktion der Benutzerdaten
+  const userName = session.user.name ?? session.user.email ?? "Benutzer";
+  const userImage = session.user.image ?? undefined;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -30,7 +35,7 @@ export default async function DashboardPage() {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">
-                Willkommen, {session.user.name || session.user.email}
+                Willkommen, {userName}
               </span>
               <a
                 href="/api/auth/signout"

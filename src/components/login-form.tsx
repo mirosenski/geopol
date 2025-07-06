@@ -8,9 +8,9 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 export function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleGitHubLogin = async () => {
+  const handleGitHubLogin = async (): Promise<void> => {
     setIsLoading(true);
     try {
       await signIn("github", { callbackUrl: "/dashboard" });

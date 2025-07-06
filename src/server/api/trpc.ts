@@ -10,9 +10,11 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
+import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
+import { type AppRouter } from "~/server/api/root";
 
 /**
  * 1. CONTEXT
@@ -131,3 +133,9 @@ export const protectedProcedure = t.procedure
       },
     });
   });
+
+/**
+ * Typen für Router-Inputs und -Outputs
+ */
+export type RouterInputs = inferRouterInputs<AppRouter>;
+export type RouterOutputs = inferRouterOutputs<AppRouter>;

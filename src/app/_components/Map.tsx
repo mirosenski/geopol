@@ -4,12 +4,43 @@ import React, { useRef, useEffect, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
+// Typen für Map-Eigenschaften definieren
 interface MapProps {
   className?: string;
   initialCenter?: [number, number];
   initialZoom?: number;
   showPoliceStations?: boolean;
   enableClustering?: boolean;
+}
+
+// Typ für GeoJSON-Feature-Eigenschaften
+interface PoliceStationProperties {
+  id?: string;
+  name: string;
+  address: string;
+  type: "präsidium" | "revier";
+  phone: string;
+}
+
+// Typ für GeoJSON-Feature
+interface PoliceStationFeature {
+  type: "Feature";
+  properties: PoliceStationProperties;
+  geometry: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+}
+
+// Typ für GeoJSON-Daten
+interface PoliceStationsGeoJSON {
+  type: "FeatureCollection";
+  features: PoliceStationFeature[];
+}
+
+// Typ für Map-Source mit Clustering
+interface ClusterSource {
+  getClusterExpansionZoom: (clusterId: number, callback: (err: unknown, zoom: number) => void) => void;
 }
 
 // Hochwertige SVG Icons als Data URLs
@@ -53,14 +84,15 @@ export default function Map({
   showPoliceStations = true,
   enableClustering = false
 }: MapProps) {
+  // Typen für State und Refs
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedStation, setSelectedStation] = useState<string | null>(null);
 
-  // Stuttgart police stations GeoJSON data (optimierte Koordinaten - 6 Dezimalstellen)
-  const policeStationsGeoJSON = {
+  // Typ für GeoJSON-Daten definieren
+  const policeStationsGeoJSON: PoliceStationsGeoJSON = {
     type: "FeatureCollection",
     features: [
       {
@@ -165,8 +197,8 @@ export default function Map({
     ]
   };
 
-      // Function to load icons into the map
-  const loadIcons = async (mapInstance: maplibregl.Map) => {
+  // Function to load icons into the map
+  const loadIcons = async (mapInstance: maplibregl.Map): Promise<void> => {
     try {
       // For now, we'll use a simpler approach with circle markers
       // Custom icons require additional setup that might not be available
@@ -177,15 +209,15 @@ export default function Map({
   };
 
   // Function to add police stations to the map
-  const addPoliceStations = async (mapInstance: maplibregl.Map) => {
+  const addPoliceStations = async (mapInstance: maplibregl.Map): Promise<void> => {
     try {
       console.log('🗺️ Adding police stations...');
 
       // Wait for map to be fully loaded
       if (!mapInstance.isStyleLoaded()) {
         console.log('⏳ Waiting for map style to load...');
-        await new Promise(resolve => {
-          mapInstance.once('styledata', resolve);
+        await new Promise<void>(resolve => {
+          mapInstance.once('styledata', () => resolve());
         });
       }
 
@@ -193,8 +225,6 @@ export default function Map({
       const layersToRemove = [
         'police-stations-circles',
         'clusters'
-        // 'police-stations-labels', // commented out
-        // 'cluster-count' // commented out
       ];
 
       layersToRemove.forEach(layerId => {
@@ -221,7 +251,7 @@ export default function Map({
       console.log('➕ Adding police stations source...');
       mapInstance.addSource('police-stations', {
         type: 'geojson',
-        data: policeStationsGeoJSON as any,
+        data: policeStationsGeoJSON,
         cluster: enableClustering,
         clusterMaxZoom: 14,
         clusterRadius: 50
@@ -251,37 +281,6 @@ export default function Map({
           'circle-stroke-color': '#ffffff'
         }
       });
-
-      // Add labels for police stations (commented out due to glyphs requirement)
-      // console.log('➕ Adding police stations labels...');
-      // mapInstance.addLayer({
-      //   id: 'police-stations-labels',
-      //   type: 'symbol',
-      //   source: 'police-stations',
-      //   filter: ['!', ['has', 'point_count']],
-      //   layout: {
-      //     'text-field': ['get', 'name'],
-      //     'text-font': ['Arial'],
-      //     'text-size': [
-      //       'interpolate',
-      //       ['linear'],
-      //       ['zoom'],
-      //       10, 0,
-      //       12, 11,
-      //       14, 13
-      //     ],
-      //     'text-offset': [0, 1.5],
-      //     'text-anchor': 'top',
-      //     'text-max-width': 12,
-      //     'text-optional': true
-      //   },
-      //   paint: {
-      //     'text-color': '#1f2937',
-      //     'text-halo-color': '#ffffff',
-      //     'text-halo-width': 2,
-      //     'text-halo-blur': 0.5
-      //   }
-      // });
 
       // Add cluster layer if clustering is enabled
       if (enableClustering) {
@@ -315,22 +314,6 @@ export default function Map({
             'circle-stroke-color': '#ffffff'
           }
         });
-
-        // Cluster count labels (commented out due to glyphs requirement)
-        // mapInstance.addLayer({
-        //   id: 'cluster-count',
-        //   type: 'symbol',
-        //   source: 'police-stations',
-        //   filter: ['has', 'point_count'],
-        //   layout: {
-        //     'text-field': '{point_count_abbreviated}',
-        //     'text-font': ['Arial'],
-        //     'text-size': 14
-        //   },
-        //   paint: {
-        //     'text-color': '#ffffff'
-        //   }
-        // });
       }
 
       console.log('✅ Police stations added successfully');
@@ -342,8 +325,10 @@ export default function Map({
         const feature = e.features[0];
         if (!feature) return;
 
-        const coordinates = (feature.geometry as any).coordinates.slice();
-        const properties = feature.properties;
+        // Safe type assertion for geometry coordinates
+        const geometry = feature.geometry as unknown as { coordinates: [number, number] };
+        const coordinates = geometry.coordinates.slice();
+        const properties = feature.properties as PoliceStationProperties;
 
         // Create enhanced popup content
         const popupContent = `
@@ -378,11 +363,11 @@ export default function Map({
           closeOnClick: true,
           maxWidth: '300px'
         })
-          .setLngLat(coordinates)
+          .setLngLat(coordinates as [number, number])
           .setHTML(popupContent)
           .addTo(mapInstance);
 
-        setSelectedStation(properties.id);
+        setSelectedStation(properties.id ?? null);
       });
 
       // Change cursor on hover
@@ -394,30 +379,32 @@ export default function Map({
         mapInstance.getCanvas().style.cursor = '';
       });
 
-              // Handle cluster clicks
-        if (enableClustering) {
-          mapInstance.on('click', 'clusters', (e) => {
-            const features = mapInstance.queryRenderedFeatures(e.point, {
-              layers: ['clusters']
-            });
-            if (features.length > 0 && features[0]) {
-              const clusterId = features[0].properties?.cluster_id;
-              const source = mapInstance.getSource('police-stations') as any;
-
-              if (clusterId && source) {
-                source.getClusterExpansionZoom(clusterId, (err: any, zoom: number) => {
-                  if (err) return;
-
-                  if (features[0] && features[0].geometry) {
-                    mapInstance.easeTo({
-                      center: (features[0].geometry as any).coordinates,
-                      zoom: zoom
-                    });
-                  }
-                });
-              }
-            }
+      // Handle cluster clicks
+      if (enableClustering) {
+        mapInstance.on('click', 'clusters', (e) => {
+          const features = mapInstance.queryRenderedFeatures(e.point, {
+            layers: ['clusters']
           });
+          if (features.length > 0 && features[0]) {
+            const clusterId = features[0].properties?.cluster_id;
+            const source = mapInstance.getSource('police-stations') as unknown as ClusterSource;
+
+            if (clusterId && source) {
+              source.getClusterExpansionZoom(clusterId, (err: unknown, zoom: number) => {
+                if (err) return;
+
+                if (features[0] && features[0].geometry) {
+                  const geometry = features[0].geometry as unknown as { coordinates: [number, number] };
+                  const coords = geometry.coordinates;
+                  mapInstance.easeTo({
+                    center: coords,
+                    zoom: zoom
+                  });
+                }
+              });
+            }
+          }
+        });
 
         mapInstance.on('mouseenter', 'clusters', () => {
           mapInstance.getCanvas().style.cursor = 'pointer';
@@ -514,7 +501,7 @@ export default function Map({
       // Handle map errors
       map.current.on('error', (e) => {
         console.error('❌ Map error:', e);
-        setError(`Fehler beim Laden der Karte: ${e.error?.message || 'Unbekannter Fehler'}`);
+        setError(`Fehler beim Laden der Karte: ${(e.error as { message?: string })?.message ?? 'Unbekannter Fehler'}`);
       });
 
     } catch (err) {
@@ -544,7 +531,7 @@ export default function Map({
         map.current.remove();
       }
     };
-  }, [initialCenter, initialZoom, showPoliceStations, enableClustering]);
+  }, [initialCenter, initialZoom, showPoliceStations, enableClustering, addPoliceStations]);
 
   return (
     <div className="relative w-full h-full">

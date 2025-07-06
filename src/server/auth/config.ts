@@ -14,11 +14,17 @@ declare module "next-auth" {
     user: {
       id: string;
       role: "ADMIN" | "USER" | "PENDING";
-      // ...other properties
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
     } & DefaultSession["user"];
   }
 
   interface User {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
     role: "ADMIN" | "USER" | "PENDING";
   }
 }
@@ -68,7 +74,7 @@ export const authConfig = {
     }),
   ],
   callbacks: {
-    jwt: ({ token, user }: any) => {
+    jwt: ({ token, user }: { token: any; user?: any }) => {
       console.log("🔄 JWT Callback - User:", user ? "Ja" : "Nein", "Token ID:", token.id);
 
       if (user) {
@@ -80,7 +86,7 @@ export const authConfig = {
       }
       return token;
     },
-    session: ({ session, token }: any) => {
+    session: ({ session, token }: { session: any; token: any }) => {
       console.log("🔄 Session Callback - Token ID:", token.id, "Rolle:", token.role);
 
       return {

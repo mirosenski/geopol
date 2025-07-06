@@ -10,7 +10,13 @@ import {
 } from "../../components/ui/dropdown-menu"
 import { LogOut } from 'lucide-react'
 
-export function UserAvatar({ name, image }: { name: string; image?: string }) {
+// Typen für UserAvatar-Props
+interface UserAvatarProps {
+  name: string;
+  image?: string;
+}
+
+export function UserAvatar({ name, image }: UserAvatarProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="focus:outline-none">

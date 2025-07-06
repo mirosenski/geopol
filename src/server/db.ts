@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 import { env } from "~/env";
 
-const createPrismaClient = () =>
+const createPrismaClient = (): PrismaClient =>
   new PrismaClient({
     log:
       env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],

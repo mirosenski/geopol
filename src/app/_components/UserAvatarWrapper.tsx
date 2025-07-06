@@ -1,6 +1,12 @@
 "use client";
 import { UserAvatar } from "./UserAvatar";
 
-export default function UserAvatarWrapper(props: { name: string; image?: string }) {
+// Typen für UserAvatarWrapper-Props
+interface UserAvatarWrapperProps {
+  name: string;
+  image?: string;
+}
+
+export default function UserAvatarWrapper(props: UserAvatarWrapperProps) {
   return <UserAvatar {...props} />;
 }

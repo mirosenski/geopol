@@ -2,21 +2,35 @@ import { NextRequest, NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { db } from "~/server/db";
 
+// Typen für Request-Daten
+interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
+// Typen für Response-Daten
+interface RegisterResponse {
+  message?: string;
+  error?: string;
+  userId?: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password } = await request.json();
+    const { name, email, password }: RegisterRequest = await request.json();
 
     // Validierung
     if (!name || !email || !password) {
       return NextResponse.json(
-        { error: "Alle Felder sind erforderlich" },
+        { error: "Alle Felder sind erforderlich" } as RegisterResponse,
         { status: 400 }
       );
     }
 
     if (password.length < 6) {
       return NextResponse.json(
-        { error: "Passwort muss mindestens 6 Zeichen lang sein" },
+        { error: "Passwort muss mindestens 6 Zeichen lang sein" } as RegisterResponse,
         { status: 400 }
       );
     }
@@ -28,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "E-Mail-Adresse bereits registriert" },
+        { error: "E-Mail-Adresse bereits registriert" } as RegisterResponse,
         { status: 400 }
       );
     }
@@ -50,14 +64,14 @@ export async function POST(request: NextRequest) {
       {
         message: "Registrierung erfolgreich. Bitte warte auf Admin-Genehmigung.",
         userId: user.id
-      },
+      } as RegisterResponse,
       { status: 201 }
     );
 
   } catch (error) {
     console.error("Registrierungsfehler:", error);
     return NextResponse.json(
-      { error: "Interner Server-Fehler" },
+      { error: "Interner Server-Fehler" } as RegisterResponse,
       { status: 500 }
     );
   }

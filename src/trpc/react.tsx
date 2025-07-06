@@ -11,7 +11,7 @@ import { type AppRouter } from "~/server/api/root";
 import { createQueryClient } from "./query-client";
 
 let clientQueryClientSingleton: QueryClient | undefined = undefined;
-const getQueryClient = () => {
+const getQueryClient = (): QueryClient => {
   if (typeof window === "undefined") {
     // Server: always make a new query client
     return createQueryClient();
@@ -38,7 +38,12 @@ export type RouterInputs = inferRouterInputs<AppRouter>;
  */
 export type RouterOutputs = inferRouterOutputs<AppRouter>;
 
-export function TRPCReactProvider(props: { children: React.ReactNode }) {
+// Typen für TRPCReactProvider-Props
+interface TRPCReactProviderProps {
+  children: React.ReactNode;
+}
+
+export function TRPCReactProvider(props: TRPCReactProviderProps) {
   const queryClient = getQueryClient();
 
   const [trpcClient] = useState(() =>
@@ -71,7 +76,7 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
   );
 }
 
-function getBaseUrl() {
+function getBaseUrl(): string {
   if (typeof window !== "undefined") return window.location.origin;
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return `http://localhost:${process.env.PORT ?? 3000}`;

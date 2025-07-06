@@ -10,13 +10,30 @@ import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Shield, User, Lock, Mail, AlertTriangle } from "lucide-react";
 import { useEffect } from "react";
 
+// Typen für Form-Daten
+interface LoginData {
+  email: string;
+  password: string;
+}
+
+interface RegisterData extends LoginData {
+  name: string;
+}
+
+// Typ für API-Response
+interface RegisterResponse {
+  message?: string;
+  error?: string;
+  userId?: string;
+}
+
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLogin, setIsLogin] = useState<boolean>(true);
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [name, setName] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
   const { data: session, status } = useSession();
 
@@ -28,7 +45,7 @@ export default function AuthPage() {
     }
   }, [session, status, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
@@ -56,10 +73,12 @@ export default function AuthPage() {
         }
       } else {
         // Registrierung
+        const registerData: RegisterData = { name, email, password };
+
         const response = await fetch("/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, email, password }),
+          body: JSON.stringify(registerData),
         });
 
         if (response.ok) {
@@ -70,7 +89,7 @@ export default function AuthPage() {
           setPassword("");
           setName("");
         } else {
-          const data = await response.json();
+          const data: RegisterResponse = await response.json();
           setError(data.error || "Registrierung fehlgeschlagen");
         }
       }
