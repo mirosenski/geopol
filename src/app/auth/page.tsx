@@ -89,7 +89,7 @@ export default function AuthPage() {
           setPassword("");
           setName("");
         } else {
-          const data: RegisterResponse = await response.json();
+          const data = await response.json() as RegisterResponse;
           setError(data.error ?? "Registrierung fehlgeschlagen");
         }
       }

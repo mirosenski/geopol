@@ -90,8 +90,8 @@ export const authConfig = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
-        token.name = user.name!;
-        token.email = user.email!;
+        token.name = user.name ?? undefined;
+        token.email = user.email ?? undefined;
         console.log("✅ JWT Token aktualisiert mit User-Daten");
       }
       return token;
@@ -103,10 +103,10 @@ export const authConfig = {
         ...session,
         user: {
           ...session.user,
-          id: token.id as string,
-          role: token.role as "ADMIN" | "USER" | "PENDING",
-          name: token.name as string | null,
-          email: token.email as string | null,
+          id: token.id!,
+          role: token.role!,
+          name: token.name ?? null,
+          email: token.email ?? null,
         },
       };
     },

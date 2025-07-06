@@ -3,10 +3,11 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { authConfig } from "~/server/auth/config";
 import { MapComponent } from "~/components/MapComponent";
+import type { Session } from "next-auth";
 
 export default async function DashboardPage() {
   // Explizite Typisierung der Session
-  const session = await getServerSession(authConfig);
+  const session = await getServerSession(authConfig) as Session | null;
 
   console.log("🔍 Dashboard - Session gefunden:", !!session);
   console.log("🔍 Dashboard - Session Details:", session ? {

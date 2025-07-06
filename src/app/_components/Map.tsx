@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -57,8 +57,8 @@ export default function Map({
   const [error, setError] = useState<string | null>(null);
   const [selectedStation, setSelectedStation] = useState<string | null>(null);
 
-  // Typ für GeoJSON-Daten definieren
-  const policeStationsGeoJSON: PoliceStationsGeoJSON = {
+  // Typ für GeoJSON-Daten definieren - mit useMemo für stabile Referenz
+  const policeStationsGeoJSON = useMemo((): PoliceStationsGeoJSON => ({
     type: "FeatureCollection",
     features: [
       {
@@ -161,17 +161,17 @@ export default function Map({
         geometry: { type: "Point", coordinates: [9.160630, 48.813125] }
       }
     ]
-  };
+  }), []);
 
   // Function to add police stations to the map - mit useCallback für stabile Referenz
-  const addPoliceStations = useCallback((mapInstance: maplibregl.Map): void => {
+  const addPoliceStations = useCallback(async (mapInstance: maplibregl.Map): Promise<void> => {
     try {
       console.log('🗺️ Adding police stations...');
 
       // Wait for map to be fully loaded
       if (!mapInstance.isStyleLoaded()) {
         console.log('⏳ Waiting for map style to load...');
-        void new Promise<void>(resolve => {
+        await new Promise<void>(resolve => {
           mapInstance.once('styledata', () => resolve());
         });
       }
@@ -341,7 +341,7 @@ export default function Map({
             layers: ['clusters']
           });
           if (features.length > 0 && features[0]) {
-            const clusterId = features[0].properties?.cluster_id as number;
+            const clusterId = features[0].properties?.cluster_id!;
             const source = mapInstance.getSource('police-stations') as ClusterSource;
 
             if (clusterId && source && typeof source.getClusterExpansionZoom === 'function') {
@@ -447,7 +447,7 @@ export default function Map({
         // Add police stations if enabled
         if (showPoliceStations && map.current) {
           try {
-            addPoliceStations(map.current);
+            void addPoliceStations(map.current);
           } catch (err) {
             console.error('❌ Error adding police stations:', err);
             setError('Fehler beim Laden der Polizeistationen');

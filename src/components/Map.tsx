@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import type { GeoJSON } from 'geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -111,7 +111,7 @@ export function MapComponent({ className = "w-full h-full" }: MapProps) {
   };
 
   // Function to add police stations to the map
-  const addPoliceStations = (mapInstance: maplibregl.Map) => {
+  const addPoliceStations = useCallback((mapInstance: maplibregl.Map) => {
     // Add GeoJSON source
     mapInstance.addSource('police-stations', {
       type: 'geojson',
@@ -200,7 +200,7 @@ export function MapComponent({ className = "w-full h-full" }: MapProps) {
     mapInstance.on('mouseleave', 'police-stations-layer', () => {
       mapInstance.getCanvas().style.cursor = '';
     });
-  };
+  }, [policeStationsGeoJSON]);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -271,7 +271,7 @@ export function MapComponent({ className = "w-full h-full" }: MapProps) {
         map.current.remove();
       }
     };
-  }, []); // Keine Dependencies für addPoliceStations nötig, da es direkt in useEffect definiert ist
+  }, [addPoliceStations]); // Füge addPoliceStations als Dependency hinzu
 
   return <div ref={mapContainer} className={className} />;
 }
