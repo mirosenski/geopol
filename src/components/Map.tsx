@@ -1,28 +1,20 @@
-import React, { useRef, useEffect, useState } from 'react';
+"use client";
+
+import { useRef, useEffect } from 'react';
 import maplibregl from 'maplibre-gl';
+import type { GeoJSON } from 'geojson';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import * as GeoJSON from 'geojson';
 
 interface MapProps {
   className?: string;
-  initialCenter?: [number, number];
-  initialZoom?: number;
-  showPoliceStations?: boolean;
 }
 
-export default function Map({
-  className = "w-full h-full",
-  initialCenter = [9.1829, 48.7758], // Stuttgart Zentrum
-  initialZoom = 11,
-  showPoliceStations = true
-}: MapProps) {
+export function MapComponent({ className = "w-full h-full" }: MapProps) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Stuttgart police stations GeoJSON data
-  const policeStationsGeoJSON = {
+  const policeStationsGeoJSON: GeoJSON.FeatureCollection = {
     type: "FeatureCollection",
     features: [
       {
@@ -123,7 +115,7 @@ export default function Map({
     // Add GeoJSON source
     mapInstance.addSource('police-stations', {
       type: 'geojson',
-      data: policeStationsGeoJSON as GeoJSON.FeatureCollection
+      data: policeStationsGeoJSON
     });
 
     // Add layer for police stations
@@ -169,14 +161,14 @@ export default function Map({
       }
     });
 
-        // Add popups on click
+    // Add popups on click
     mapInstance.on('click', 'police-stations-layer', (e) => {
       if (!e.features || e.features.length === 0) return;
 
       const feature = e.features[0];
       if (!feature) return;
 
-      const geometry = feature.geometry as unknown as { coordinates: [number, number] };
+      const geometry = feature.geometry as { type: string; coordinates: [number, number] };
       const coordinates = geometry.coordinates.slice() as [number, number];
       const properties = feature.properties as { name: string; type: string; address: string; phone: string };
 
@@ -213,83 +205,65 @@ export default function Map({
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    try {
-      // Initialize map
-      map.current = new maplibregl.Map({
-        container: mapContainer.current,
-        style: {
-          version: 8,
-          sources: {
-            'osm-tiles': {
-              type: 'raster',
-              tiles: [
-                'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-              ],
-              tileSize: 256,
-              attribution: '© OpenStreetMap contributors'
-            }
-          },
-          layers: [
-            {
-              id: 'osm-tiles-layer',
-              type: 'raster',
-              source: 'osm-tiles',
-              minzoom: 0,
-              maxzoom: 19
-            }
-          ]
+    // Initialize map
+    map.current = new maplibregl.Map({
+      container: mapContainer.current,
+      style: {
+        version: 8,
+        sources: {
+          'osm-tiles': {
+            type: 'raster',
+            tiles: [
+              'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+            ],
+            tileSize: 256,
+            attribution: '© OpenStreetMap contributors'
+          }
         },
-        center: initialCenter,
-        zoom: initialZoom,
-        attributionControl: false
-      });
+        layers: [
+          {
+            id: 'osm-tiles-layer',
+            type: 'raster',
+            source: 'osm-tiles',
+            minzoom: 0,
+            maxzoom: 19
+          }
+        ]
+      },
+      center: [9.1829, 48.7758], // Stuttgart center
+      zoom: 11,
+      attributionControl: false
+    });
 
-      // Add navigation controls
-      map.current.addControl(
-        new maplibregl.NavigationControl({
-          visualizePitch: true
-        }),
-        'top-right'
-      );
+    // Add navigation controls
+    map.current.addControl(
+      new maplibregl.NavigationControl(),
+      'top-right'
+    );
 
-      // Add scale control
-      map.current.addControl(
-        new maplibregl.ScaleControl({
-          maxWidth: 200,
-          unit: 'metric'
-        }),
-        'bottom-left'
-      );
+    // Add scale control
+    map.current.addControl(
+      new maplibregl.ScaleControl({
+        maxWidth: 200,
+        unit: 'metric'
+      }),
+      'bottom-left'
+    );
 
-      // Add attribution control with custom position
-      map.current.addControl(
-        new maplibregl.AttributionControl({
-          compact: true
-        }),
-        'bottom-right'
-      );
+    // Add attribution control
+    map.current.addControl(
+      new maplibregl.AttributionControl({
+        compact: true
+      }),
+      'bottom-right'
+    );
 
-      // Handle map load
-      map.current.on('load', () => {
-        setIsLoading(false);
-        console.log('🗺️ Map loaded successfully');
-
-        // Add police stations if enabled
-        if (showPoliceStations && map.current) {
-          addPoliceStations(map.current);
-        }
-      });
-
-      // Handle map errors
-      map.current.on('error', (e) => {
-        console.error('Map error:', e);
-        setError('Fehler beim Laden der Karte');
-      });
-
-    } catch (err) {
-      console.error('Failed to initialize map:', err);
-      setError('Karte konnte nicht initialisiert werden');
-    }
+    // Handle map load
+    map.current.on('load', () => {
+      if (map.current) {
+        addPoliceStations(map.current);
+      }
+    });
 
     // Cleanup
     return () => {
@@ -297,41 +271,7 @@ export default function Map({
         map.current.remove();
       }
     };
-  }, [initialCenter, initialZoom, showPoliceStations]);
+  }, []); // Keine Dependencies für addPoliceStations nötig, da es direkt in useEffect definiert ist
 
-  return (
-    <div className="relative w-full h-full">
-      <div ref={mapContainer} className={className} />
-
-      {/* Loading indicator */}
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100/80">
-          <div className="flex flex-col items-center gap-2">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
-            <span className="text-sm text-gray-600">Karte wird geladen...</span>
-          </div>
-        </div>
-      )}
-
-      {/* Error display */}
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-red-50/80">
-          <div className="rounded-lg bg-white p-4 shadow-lg">
-            <p className="text-red-600">⚠️ {error}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Info panel */}
-      <div className="absolute left-4 top-4 rounded-lg bg-white/90 p-3 shadow-lg backdrop-blur-sm">
-        <h3 className="text-sm font-semibold text-gray-800">🚔 GeoPol Map</h3>
-        <p className="text-xs text-gray-600">Stuttgart Test-Gebiet</p>
-        {showPoliceStations && (
-          <p className="text-xs text-gray-500 mt-1">
-            1 Präsidium • 8 Reviere
-          </p>
-        )}
-      </div>
-    </div>
-  );
+  return <div ref={mapContainer} className={className} />;
 }

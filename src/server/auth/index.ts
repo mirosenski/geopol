@@ -3,8 +3,8 @@ import { cache } from "react";
 
 import { authConfig } from "./config";
 
-const { auth: uncachedAuth } = NextAuth(authConfig);
+const nextAuthResult = NextAuth(authConfig);
 
-const auth = cache(uncachedAuth);
+const auth = cache(nextAuthResult.auth);
 
 export { auth };

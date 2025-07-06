@@ -90,8 +90,8 @@ export const authConfig = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
-        token.name = user.name ?? undefined;
-        token.email = user.email ?? undefined;
+        token.name = user.name!;
+        token.email = user.email!;
         console.log("✅ JWT Token aktualisiert mit User-Daten");
       }
       return token;

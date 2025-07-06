@@ -30,7 +30,7 @@ import { type AppRouter } from "~/server/api/root";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await auth() as Session | null;
+  const session = await auth();
 
   return {
     db,

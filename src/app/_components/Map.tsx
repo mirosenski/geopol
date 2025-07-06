@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -39,43 +39,9 @@ interface PoliceStationsGeoJSON {
 }
 
 // Typ für Map-Source mit Clustering
-interface ClusterSource {
-  getClusterExpansionZoom: (clusterId: number, callback: (err: unknown, zoom: number) => void) => void;
+interface ClusterSource extends maplibregl.GeoJSONSource {
+  getClusterExpansionZoom: (clusterId: number) => Promise<number>;
 }
-
-// Hochwertige SVG Icons als Data URLs
-const POLICE_ICONS = {
-  'police-hq': `data:image/svg+xml;base64,${btoa(`
-    <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-      <rect x="8" y="20" width="32" height="24" fill="#1e40af" rx="2"/>
-      <path d="M 6 20 L 24 8 L 42 20 Z" fill="#1e3a8a"/>
-      <rect x="12" y="24" width="3" height="16" fill="#dbeafe"/>
-      <rect x="19" y="24" width="3" height="16" fill="#dbeafe"/>
-      <rect x="26" y="24" width="3" height="16" fill="#dbeafe"/>
-      <rect x="33" y="24" width="3" height="16" fill="#dbeafe"/>
-      <rect x="21" y="32" width="6" height="8" fill="#1e3a8a"/>
-      <path d="M 24 14 L 25.5 17 L 29 17.5 L 26.5 20 L 27 23.5 L 24 22 L 21 23.5 L 21.5 20 L 19 17.5 L 22.5 17 Z" fill="#fbbf24"/>
-    </svg>
-  `)}`,
-  'police-station': `data:image/svg+xml;base64,${btoa(`
-    <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-      <rect x="8" y="16" width="24" height="20" fill="#3b82f6" rx="2"/>
-      <path d="M 6 16 L 20 8 L 34 16 Z" fill="#2563eb"/>
-      <rect x="12" y="20" width="4" height="4" fill="#e0f2fe"/>
-      <rect x="24" y="20" width="4" height="4" fill="#e0f2fe"/>
-      <rect x="17" y="26" width="6" height="10" fill="#1e40af"/>
-      <circle cx="20" cy="14" r="4" fill="#fbbf24"/>
-      <text x="20" y="17" font-size="6" font-weight="bold" text-anchor="middle" fill="#1e3a8a">P</text>
-    </svg>
-  `)}`,
-  'police-marker': `data:image/svg+xml;base64,${btoa(`
-    <svg width="40" height="48" viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
-      <path d="M 20 0 C 8.95 0 0 8.95 0 20 C 0 25 2 29.5 5 32.5 L 20 48 L 35 32.5 C 38 29.5 40 25 40 20 C 40 8.95 31.05 0 20 0 Z" fill="#2563eb"/>
-      <circle cx="20" cy="18" r="12" fill="white"/>
-      <path d="M 20 10 L 22 14 L 26 14.5 L 23 17.5 L 23.5 21.5 L 20 19.5 L 16.5 21.5 L 17 17.5 L 14 14.5 L 18 14 Z" fill="#2563eb"/>
-    </svg>
-  `)}`
-};
 
 export default function Map({
   className = "w-full h-full",
@@ -197,26 +163,15 @@ export default function Map({
     ]
   };
 
-  // Function to load icons into the map
-  const loadIcons = async (mapInstance: maplibregl.Map): Promise<void> => {
-    try {
-      // For now, we'll use a simpler approach with circle markers
-      // Custom icons require additional setup that might not be available
-      console.log('✅ Using circle markers instead of custom icons');
-    } catch (err) {
-      console.error('❌ Error loading icons:', err);
-    }
-  };
-
-  // Function to add police stations to the map
-  const addPoliceStations = async (mapInstance: maplibregl.Map): Promise<void> => {
+  // Function to add police stations to the map - mit useCallback für stabile Referenz
+  const addPoliceStations = useCallback((mapInstance: maplibregl.Map): void => {
     try {
       console.log('🗺️ Adding police stations...');
 
       // Wait for map to be fully loaded
       if (!mapInstance.isStyleLoaded()) {
         console.log('⏳ Waiting for map style to load...');
-        await new Promise<void>(resolve => {
+        void new Promise<void>(resolve => {
           mapInstance.once('styledata', () => resolve());
         });
       }
@@ -326,8 +281,8 @@ export default function Map({
         if (!feature) return;
 
         // Safe type assertion for geometry coordinates
-        const geometry = feature.geometry as unknown as { coordinates: [number, number] };
-        const coordinates = geometry.coordinates.slice() as [number, number];
+        const geometry = feature.geometry as { type: string; coordinates: [number, number] };
+        const coordinates = geometry.coordinates.slice();
         const properties = feature.properties as PoliceStationProperties;
 
         // Create enhanced popup content
@@ -363,7 +318,7 @@ export default function Map({
           closeOnClick: true,
           maxWidth: '300px'
         })
-          .setLngLat(coordinates)
+          .setLngLat(coordinates as [number, number])
           .setHTML(popupContent)
           .addTo(mapInstance);
 
@@ -386,22 +341,24 @@ export default function Map({
             layers: ['clusters']
           });
           if (features.length > 0 && features[0]) {
-            const clusterId = features[0].properties?.cluster_id;
-            const source = mapInstance.getSource('police-stations') as unknown as ClusterSource;
+            const clusterId = features[0].properties?.cluster_id as number;
+            const source = mapInstance.getSource('police-stations') as ClusterSource;
 
-            if (clusterId && source) {
-              source.getClusterExpansionZoom(clusterId, (err: unknown, zoom: number) => {
-                if (err) return;
-
-                if (features[0] && features[0].geometry) {
-                  const geometry = features[0].geometry as unknown as { coordinates: [number, number] };
-                  const coords = geometry.coordinates;
-                  mapInstance.easeTo({
-                    center: coords,
-                    zoom: zoom
-                  });
-                }
-              });
+            if (clusterId && source && typeof source.getClusterExpansionZoom === 'function') {
+              source.getClusterExpansionZoom(clusterId)
+                .then((zoom: number) => {
+                  if (features[0] && features[0].geometry) {
+                    const geometry = features[0].geometry as { type: string; coordinates: [number, number] };
+                    const coords = geometry.coordinates;
+                    mapInstance.easeTo({
+                      center: coords,
+                      zoom: zoom
+                    });
+                  }
+                })
+                .catch((err: Error) => {
+                  console.error('Error expanding cluster:', err);
+                });
             }
           }
         });
@@ -418,7 +375,7 @@ export default function Map({
     } catch (err) {
       console.error('Error adding police stations:', err);
     }
-  };
+  }, [policeStationsGeoJSON, enableClustering]);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -483,14 +440,14 @@ export default function Map({
       );
 
       // Handle map load
-      map.current.on('load', async () => {
+      map.current.on('load', () => {
         setIsLoading(false);
         console.log('🗺️ Map loaded successfully');
 
         // Add police stations if enabled
         if (showPoliceStations && map.current) {
           try {
-            await addPoliceStations(map.current);
+            addPoliceStations(map.current);
           } catch (err) {
             console.error('❌ Error adding police stations:', err);
             setError('Fehler beim Laden der Polizeistationen');
@@ -501,7 +458,8 @@ export default function Map({
       // Handle map errors
       map.current.on('error', (e) => {
         console.error('❌ Map error:', e);
-        setError(`Fehler beim Laden der Karte: ${(e.error as { message?: string })?.message ?? 'Unbekannter Fehler'}`);
+        const errorMessage = (e.error as Error)?.message ?? 'Unbekannter Fehler';
+        setError(`Fehler beim Laden der Karte: ${errorMessage}`);
       });
 
     } catch (err) {
