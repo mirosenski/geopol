@@ -2,10 +2,19 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authConfig } from "~/server/auth/config";
 import { MapComponent } from "~/components/MapComponent";
+import type { Session } from "next-auth";
 
 export default async function DashboardPage() {
-  // Session-Extraktion ohne explizite Typisierung
-  const session = await getServerSession(authConfig);
+  // Explizite Typisierung der Session
+  const session = await getServerSession(authConfig) as Session & {
+    user?: {
+      id?: string;
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      role?: "ADMIN" | "USER" | "PENDING";
+    };
+  };
 
   console.log("🔍 Dashboard - Session gefunden:", !!session);
   console.log("🔍 Dashboard - Session Details:", session ? {

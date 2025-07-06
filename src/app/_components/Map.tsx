@@ -327,7 +327,7 @@ export default function Map({
 
         // Safe type assertion for geometry coordinates
         const geometry = feature.geometry as unknown as { coordinates: [number, number] };
-        const coordinates = geometry.coordinates.slice();
+        const coordinates = geometry.coordinates.slice() as [number, number];
         const properties = feature.properties as PoliceStationProperties;
 
         // Create enhanced popup content
@@ -363,7 +363,7 @@ export default function Map({
           closeOnClick: true,
           maxWidth: '300px'
         })
-          .setLngLat(coordinates as [number, number])
+          .setLngLat(coordinates)
           .setHTML(popupContent)
           .addTo(mapInstance);
 
