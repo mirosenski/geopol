@@ -1,7 +1,7 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { db } from "~/server/db";
-import type { DefaultSession } from "next-auth";
+import type { DefaultSession, SessionStrategy } from "next-auth";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -96,6 +96,6 @@ export const authConfig = {
     },
   },
   pages: { signIn: "/auth" },
-  session: { strategy: "jwt" },
+  session: { strategy: "jwt" as SessionStrategy },
   secret: process.env.AUTH_SECRET,
 };
