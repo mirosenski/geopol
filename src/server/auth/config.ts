@@ -107,4 +107,4 @@ export const authConfig = {
     strategy: "jwt",
   },
   debug: true,
-} as const;
+} as any;
