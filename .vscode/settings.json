@@ -1,7 +1,7 @@
 {
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
+    "source.fixAll.eslint": "explicit"
   },
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "typescript.preferences.importModuleSpecifier": "relative",
@@ -9,5 +9,8 @@
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "files.trimTrailingWhitespace": true,
-  "files.insertFinalNewline": true
-} 
+  "files.insertFinalNewline": true,
+  "css.validate": false,
+  "scss.validate": false,
+  "less.validate": false
+}

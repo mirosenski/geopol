@@ -1,0 +1,131 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Polizeipräsidium Stuttgart",
+        "address": "Hahnemannstraße 1, 70191 Stuttgart",
+        "type": "präsidium",
+        "phone": "0711 8990-0",
+        "icon": "präsidium"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [9.18686, 48.81046]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Polizeirevier 1 Theodor-Heuss-Straße",
+        "address": "Theodor-Heuss-Straße 11, 70174 Stuttgart",
+        "type": "revier",
+        "phone": "0711 8990-3100",
+        "icon": "revier"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [9.1744498, 48.7769268]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Polizeirevier 2 Wolframstraße",
+        "address": "Wolframstraße 36, 70191 Stuttgart",
+        "type": "revier",
+        "phone": "0711 8990-3200",
+        "icon": "revier"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [9.1830113, 48.7922325]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Polizeirevier 3 Gutenbergstraße",
+        "address": "Gutenbergstraße 109/111, 70197 Stuttgart",
+        "type": "revier",
+        "phone": "0711 8990-3300",
+        "icon": "revier"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [9.1539327, 48.7700658]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Polizeirevier 4 Balinger Straße",
+        "address": "Balinger Straße 31, 70567 Stuttgart",
+        "type": "revier",
+        "phone": "0711 8990-3400",
+        "icon": "revier"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [9.14272, 48.72991]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Polizeirevier 5 Ostendstraße",
+        "address": "Ostendstraße 88, 70188 Stuttgart",
+        "type": "revier",
+        "phone": "0711 8990-3500",
+        "icon": "revier"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [9.2079634, 48.7837341]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Polizeirevier 6 Martin-Luther Straße",
+        "address": "Martin-Luther-Straße 40/42, 70372 Stuttgart",
+        "type": "revier",
+        "phone": "0711 8990-3600",
+        "icon": "revier"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [9.22409, 48.80509]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Polizeirevier 7 Ludwigsburger Straße",
+        "address": "Ludwigsburger Straße 126, 70435 Stuttgart",
+        "type": "revier",
+        "phone": "0711 8990-3700",
+        "icon": "revier"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [9.1746453, 48.8317597]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Polizeirevier 8 Kärntner Straße",
+        "address": "Kärntner Straße 18, 70469 Stuttgart",
+        "type": "revier",
+        "phone": "0711 8990-3800",
+        "icon": "revier"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [9.16063, 48.8131253]
+      }
+    }
+  ]
+}
