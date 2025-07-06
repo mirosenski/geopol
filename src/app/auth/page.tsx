@@ -24,7 +24,7 @@ export default function AuthPage() {
   useEffect(() => {
     if (status === "authenticated" && session) {
       console.log("✅ Session gefunden, leite weiter...");
-      router.push("/dashboard");
+      router.replace("/dashboard");
     }
   }, [session, status, router]);
 
@@ -42,7 +42,6 @@ export default function AuthPage() {
           email,
           password,
           redirect: false,
-          callbackUrl: "/dashboard"
         });
 
         console.log("📋 Login-Ergebnis:", result);
@@ -51,7 +50,7 @@ export default function AuthPage() {
           setError(`Login-Fehler: ${result.error}`);
         } else if (result?.ok) {
           console.log("✅ Login erfolgreich, leite weiter...");
-          router.push("/dashboard");
+          router.replace("/dashboard");
         } else {
           setError("Unbekannter Login-Fehler");
         }
@@ -90,6 +89,18 @@ export default function AuthPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Lädt...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't show auth page if already authenticated
+  if (status === "authenticated") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Weiterleitung zum Dashboard...</p>
         </div>
       </div>
     );

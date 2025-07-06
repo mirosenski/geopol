@@ -1,90 +1,58 @@
+import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { Button } from "~/components/ui/button";
-import { Map, User } from "lucide-react";
-import UserAvatarWrapper from "../_components/UserAvatarWrapper";
-import { headers } from "next/headers";
-import { getToken } from "next-auth/jwt";
+import { authConfig } from "~/server/auth/config";
+import { MapComponent } from "~/components/MapComponent";
 
 export default async function DashboardPage() {
-  const headersList = await headers();
-  const token = await getToken({
-    req: { headers: headersList } as any,
-    secret: process.env.AUTH_SECRET
-  });
+  const session = await getServerSession(authConfig);
 
-  if (!token?.email) {
+  console.log("🔍 Dashboard - Session gefunden:", !!session);
+  console.log("🔍 Dashboard - Session Details:", session ? {
+    email: session.user.email,
+    role: session.user.role,
+    name: session.user.name
+  } : "Keine Session");
+
+  if (!session) {
+    console.log("❌ Dashboard - Keine Session, leite zur Auth-Seite weiter");
     redirect("/auth");
   }
 
-  const userName = token.name ?? token.email ?? "Benutzer";
-  const userImage = token.picture ?? undefined;
-
   return (
-    <main className="min-h-screen bg-slate-50 p-6">
-      <div className="mx-auto max-w-4xl">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Willkommen, {userName}
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="outline" className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              Profil
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Map className="h-4 w-4" />
-              Karte
-            </Button>
-            <UserAvatarWrapper name={userName} image={userImage} />
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {/* Quick Actions */}
-          <div className="rounded-lg border bg-white p-6">
-            <h2 className="mb-4 text-lg font-semibold">Schnellzugriff</h2>
-            <div className="space-y-2">
-              <Button className="w-full justify-start" variant="outline">
-                <Map className="mr-2 h-4 w-4" />
-                Kartenansicht öffnen
-              </Button>
-              <Button className="w-full justify-start" variant="outline">
-                <User className="mr-2 h-4 w-4" />
-                Benutzerprofil
-              </Button>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-gray-900">
+                GeoPol Stuttgart
+              </h1>
             </div>
-          </div>
-
-          {/* Recent Activity */}
-          <div className="rounded-lg border bg-white p-6">
-            <h2 className="mb-4 text-lg font-semibold">Letzte Aktivitäten</h2>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p>• Anmeldung erfolgreich</p>
-              <p>• Dashboard geladen</p>
-            </div>
-          </div>
-
-          {/* System Status */}
-          <div className="rounded-lg border bg-white p-6">
-            <h2 className="mb-4 text-lg font-semibold">System-Status</h2>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Authentifizierung</span>
-                <span className="text-sm text-green-600">✓ Aktiv</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm">Datenbank</span>
-                <span className="text-sm text-green-600">✓ Verbunden</span>
-              </div>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">
+                Willkommen, {session.user.name || session.user.email}
+              </span>
+              <a
+                href="/api/auth/signout"
+                className="text-sm text-red-600 hover:text-red-800"
+              >
+                Abmelden
+              </a>
             </div>
           </div>
         </div>
-      </div>
-    </main>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Polizeistationen in Stuttgart
+          </h2>
+          <div className="h-96 rounded-lg overflow-hidden border">
+            <MapComponent />
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }
