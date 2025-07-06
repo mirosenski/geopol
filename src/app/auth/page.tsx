@@ -90,7 +90,7 @@ export default function AuthPage() {
           setName("");
         } else {
           const data: RegisterResponse = await response.json();
-          setError(data.error || "Registrierung fehlgeschlagen");
+          setError(data.error ?? "Registrierung fehlgeschlagen");
         }
       }
     } catch (err) {

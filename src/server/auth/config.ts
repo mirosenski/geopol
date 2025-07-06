@@ -2,6 +2,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import { db } from "~/server/db";
 import type { DefaultSession, SessionStrategy } from "next-auth";
+import type { JWT } from "next-auth/jwt";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -29,6 +30,15 @@ declare module "next-auth" {
   }
 }
 
+declare module "next-auth/jwt" {
+  interface JWT {
+    id?: string;
+    role?: "ADMIN" | "USER" | "PENDING";
+    name?: string;
+    email?: string;
+  }
+}
+
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
@@ -51,7 +61,7 @@ export const authConfig = {
           where: { email: credentials.email }
         });
 
-        if (!user || !user.password) {
+        if (!user?.password) {
           console.log("❌ Benutzer nicht gefunden oder kein Passwort");
           return null;
         }
@@ -74,19 +84,19 @@ export const authConfig = {
     }),
   ],
   callbacks: {
-    jwt: ({ token, user }: { token: any; user?: any }) => {
+    jwt: ({ token, user }: { token: JWT; user?: { id: string; role: "ADMIN" | "USER" | "PENDING"; name?: string | null; email?: string | null } }) => {
       console.log("🔄 JWT Callback - User:", user ? "Ja" : "Nein", "Token ID:", token.id);
 
       if (user) {
         token.id = user.id;
         token.role = user.role;
-        token.name = user.name;
-        token.email = user.email;
+        token.name = user.name ?? undefined;
+        token.email = user.email ?? undefined;
         console.log("✅ JWT Token aktualisiert mit User-Daten");
       }
       return token;
     },
-    session: ({ session, token }: { session: any; token: any }) => {
+    session: ({ session, token }: { session: DefaultSession; token: JWT }) => {
       console.log("🔄 Session Callback - Token ID:", token.id, "Rolle:", token.role);
 
       return {
@@ -95,8 +105,8 @@ export const authConfig = {
           ...session.user,
           id: token.id as string,
           role: token.role as "ADMIN" | "USER" | "PENDING",
-          name: token.name as string,
-          email: token.email as string,
+          name: token.name as string | null,
+          email: token.email as string | null,
         },
       };
     },

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { Session } from "next-auth";
 
 import {
   createTRPCRouter,
@@ -18,18 +19,32 @@ export const postRouter = createTRPCRouter({
   create: protectedProcedure
     .input(z.object({ name: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
+      const session = ctx.session as Session & {
+        user: {
+          id: string;
+          role: "ADMIN" | "USER" | "PENDING";
+        };
+      };
+
       return ctx.db.post.create({
         data: {
           name: input.name,
-          createdBy: { connect: { id: ctx.session.user.id } },
+          createdBy: { connect: { id: session.user.id } },
         },
       });
     }),
 
   getLatest: protectedProcedure.query(async ({ ctx }) => {
+    const session = ctx.session as Session & {
+      user: {
+        id: string;
+        role: "ADMIN" | "USER" | "PENDING";
+      };
+    };
+
     const post = await ctx.db.post.findFirst({
       orderBy: { createdAt: "desc" },
-      where: { createdBy: { id: ctx.session.user.id } },
+      where: { createdBy: { id: session.user.id } },
     });
 
     return post ?? null;

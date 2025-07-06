@@ -1,20 +1,13 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { authConfig } from "~/server/auth/config";
 import { MapComponent } from "~/components/MapComponent";
 import type { Session } from "next-auth";
 
 export default async function DashboardPage() {
   // Explizite Typisierung der Session
-  const session = await getServerSession(authConfig) as Session & {
-    user?: {
-      id?: string;
-      name?: string | null;
-      email?: string | null;
-      image?: string | null;
-      role?: "ADMIN" | "USER" | "PENDING";
-    };
-  };
+  const session = await getServerSession(authConfig)!;
 
   console.log("🔍 Dashboard - Session gefunden:", !!session);
   console.log("🔍 Dashboard - Session Details:", session ? {
@@ -46,12 +39,12 @@ export default async function DashboardPage() {
               <span className="text-sm text-gray-600">
                 Willkommen, {userName}
               </span>
-              <a
+              <Link
                 href="/api/auth/signout"
                 className="text-sm text-red-600 hover:text-red-800"
               >
                 Abmelden
-              </a>
+              </Link>
             </div>
           </div>
         </div>

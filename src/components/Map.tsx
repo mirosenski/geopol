@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import * as GeoJSON from 'geojson';
 
 interface MapProps {
   className?: string;
@@ -122,7 +123,7 @@ export default function Map({
     // Add GeoJSON source
     mapInstance.addSource('police-stations', {
       type: 'geojson',
-      data: policeStationsGeoJSON as any
+      data: policeStationsGeoJSON as GeoJSON.FeatureCollection
     });
 
     // Add layer for police stations
@@ -175,8 +176,9 @@ export default function Map({
       const feature = e.features[0];
       if (!feature) return;
 
-      const coordinates = (feature.geometry as any).coordinates.slice();
-      const properties = feature.properties;
+      const geometry = feature.geometry as unknown as { coordinates: [number, number] };
+      const coordinates = geometry.coordinates.slice() as [number, number];
+      const properties = feature.properties as { name: string; type: string; address: string; phone: string };
 
       // Create popup content
       const popupContent = `

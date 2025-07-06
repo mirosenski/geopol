@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { db } from "~/server/db";
 
@@ -18,7 +19,8 @@ interface RegisterResponse {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, email, password }: RegisterRequest = await request.json();
+    const body = await request.json() as RegisterRequest;
+    const { name, email, password } = body;
 
     // Validierung
     if (!name || !email || !password) {

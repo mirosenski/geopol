@@ -11,6 +11,7 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+import type { Session } from "next-auth";
 
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
@@ -29,7 +30,7 @@ import { type AppRouter } from "~/server/api/root";
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await auth();
+  const session = await auth() as Session | null;
 
   return {
     db,
