@@ -16,7 +16,6 @@ export default async function DashboardPage() {
     redirect("/auth");
   }
 
-  // Extrahiere nur serialisierbare Daten
   const userName = token.name ?? token.email ?? "Benutzer";
   const userImage = token.picture ?? undefined;
 
